@@ -1,815 +1,667 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regional Operations Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .dashboard {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .filters {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .filter-group label {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .filter-select {
-            padding: 8px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .filter-select:hover, .filter-select:focus {
-            border-color: #3498db;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-        
-        .main-content {
-            padding: 30px;
-        }
-        
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .metric-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        }
-        
-        .metric-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .metric-label {
-            color: #6c757d;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-        }
-        
-        .metric-change {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-        
-        .positive { 
-            background: #d4edda; 
-            color: #155724; 
-        }
-        
-        .pending { 
-            background: #fff3cd; 
-            color: #856404; 
-        }
-        
-        .divisions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-        }
-        
-        .region-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-        }
-        
-        .region-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .region-header {
-            padding: 20px 25px;
-            font-weight: bold;
-            font-size: 1.2em;
-            color: white;
-            position: relative;
-        }
-        
-        .region-content {
-            padding: 25px;
-        }
-        
-        .msa-section {
-            margin-bottom: 25px;
-        }
-        
-        .msa-title {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #3498db;
-        }
-        
-        .agency-item {
-            background: #f8f9fa;
-            margin: 10px 0;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #3498db;
-            transition: all 0.3s;
-        }
-        
-        .agency-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
-        }
-        
-        .agency-name {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        
-        .agency-status {
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-top: 5px;
-        }
-        
-        .status-active { 
-            background: #d4edda; 
-            color: #155724; 
-        }
-        
-        .status-live { 
-            background: #cce7ff; 
-            color: #0066cc; 
-        }
-        
-        .status-onboarding { 
-            background: #fff3cd; 
-            color: #856404; 
-        }
-        
-        .status-inactive { 
-            background: #f8d7da; 
-            color: #721c24; 
-        }
-        
-        .progress-bar {
-            background: #e9ecef;
-            border-radius: 10px;
-            height: 8px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3498db, #2ecc71);
-            border-radius: 10px;
-            transition: width 0.5s ease;
-        }
-        
-        .work-in-progress {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6c757d;
-        }
-        
-        .work-in-progress img {
-            max-width: 200px;
-            opacity: 0.7;
-            margin-bottom: 15px;
-        }
-        
-        .funnel-view {
-            display: none;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .funnel-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .funnel-layer {
-            background: linear-gradient(135deg, var(--layer-color), var(--layer-color-dark));
-            overflow: hidden;
-            position: relative;
-            transition: all 0.3s ease;
-            color: white;
-            height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin-bottom: -5px;
-        }
-        
-        .funnel-layer:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        
-        .funnel-layer:nth-child(1) {
-            width: 750px;
-            clip-path: polygon(5% 0%, 95% 0%, 85% 100%, 15% 100%);
-        }
-        
-        .funnel-layer:nth-child(2) {
-            width: 600px;
-            clip-path: polygon(8% 0%, 92% 0%, 82% 100%, 18% 100%);
-        }
-        
-        .funnel-layer:nth-child(3) {
-            width: 450px;
-            clip-path: polygon(10% 0%, 90% 0%, 80% 100%, 20% 100%);
-        }
-        
-        .funnel-layer:nth-child(4) {
-            width: 300px;
-            clip-path: polygon(12% 0%, 88% 0%, 78% 100%, 22% 100%);
-        }
-        
-        .funnel-layer:nth-child(5) {
-            width: 200px;
-            clip-path: polygon(15% 0%, 85% 0%, 75% 100%, 25% 100%);
-        }
-        
-        .funnel-header {
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.4em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
-            z-index: 2;
-            position: relative;
-        }
-        
-        .funnel-content {
-            padding: 0 40px 10px;
-            z-index: 2;
-            position: relative;
-        }
-        
-        .funnel-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-        }
-        
-        .funnel-item {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 6px 10px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .funnel-item:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-        
-        .layer-inactive { 
-            --layer-color: #95a5a6; 
-            --layer-color-dark: #7f8c8d;
-        }
-        
-        .layer-onboarding { 
-            --layer-color: #e74c3c; 
-            --layer-color-dark: #c0392b;
-        }
-        
-        .layer-live { 
-            --layer-color: #f39c12; 
-            --layer-color-dark: #e67e22;
-        }
-        
-        .layer-active { 
-            --layer-color: #3498db; 
-            --layer-color-dark: #2980b9;
-        }
-        
-        .layer-revenue { 
-            --layer-color: #27ae60; 
-            --layer-color-dark: #1e8449;
-        }
-        
-        .funnel-stats {
-            position: absolute;
-            right: -150px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            color: #2c3e50;
-            font-size: 0.9em;
-            min-width: 120px;
-        }
-        
-        .funnel-layer:nth-child(1) .funnel-stats { right: -160px; }
-        .funnel-layer:nth-child(2) .funnel-stats { right: -150px; }
-        .funnel-layer:nth-child(3) .funnel-stats { right: -140px; }
-        .funnel-layer:nth-child(4) .funnel-stats { right: -130px; }
-        .funnel-layer:nth-child(5) .funnel-stats { right: -120px; }
-        
-        @media (max-width: 768px) {
-            .filters {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .divisions-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .funnel-layer {
-                width: 90% !important;
-                clip-path: polygon(5% 0%, 95% 0%, 85% 100%, 15% 100%) !important;
-            }
-            
-            .funnel-stats {
-                position: static !important;
-                transform: none !important;
-                margin-top: 10px;
-                margin-bottom: 10px;
-            }
-        }
-        
-        .mi-in { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .tn-ky-west-oh { background: linear-gradient(135deg, #f39c12, #e67e22); }
-        .south-fl { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .ga-north-fl { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .wv-east-oh-pa-ny { background: linear-gradient(135deg, #1abc9c, #16a085); }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Regional Operations Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .dashboard {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .main-content { padding: 30px; }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .metric-card {
+      background: white; border-radius: 15px; padding: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;
+    }
+    .metric-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .metric-value { font-size: 2.5em; font-weight: bold; margin-bottom: 10px; color: #e74c3c; }
+    .metric-label { color: #6c757d; font-size: 1.1em; margin-bottom: 15px; }
+    .metric-change {
+      padding: 5px 10px; border-radius: 20px; font-size: 0.9em; font-weight: 600;
+      background: #d4edda; color: #155724;
+    }
+
+    .filters {
+      padding: 20px 30px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;
+      display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+    }
+    .filter-group { display: flex; align-items: center; gap: 10px; }
+    .filter-group label { font-weight: 600; color: #495057; }
+    .filter-select {
+      padding: 8px 15px; border: 2px solid #e9ecef; border-radius: 8px; background: white;
+      cursor: pointer; transition: all 0.3s; font-size: 14px;
+    }
+    .filter-select:hover, .filter-select:focus {
+      border-color: #3498db; outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    /* Dynamic totals just below filters */
+    .revenue-metrics {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; padding: 30px; margin: 20px 0; border-radius: 15px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;
+    }
+    .revenue-metric {
+      text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px; backdrop-filter: blur(10px);
+    }
+    .revenue-value { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
+    .revenue-label { font-size: 0.9em; opacity: 0.9; }
+
+    .divisions-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;
+    }
+    .region-card {
+      background: white; border-radius: 15px; overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: all 0.3s;
+    }
+    .region-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .region-header { padding: 20px 25px; font-weight: bold; font-size: 1.2em; color: white; }
+    .region-content { padding: 25px; }
+    .msa-section { margin-bottom: 25px; }
+    .msa-title {
+      font-size: 1.1em; font-weight: 600; color: #2c3e50; margin-bottom: 15px;
+      padding-bottom: 8px; border-bottom: 2px solid #3498db;
+    }
+
+    .agency-item {
+      background: #f8f9fa; margin: 10px 0; padding: 15px; border-radius: 10px;
+      border-left: 4px solid #3498db; transition: all 0.3s; cursor: pointer;
+    }
+    .agency-item:hover { background: #e9ecef; transform: translateX(5px); }
+    .agency-name { font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+    .agency-meta {
+      display:flex; flex-wrap:wrap; gap:10px; font-size:0.85em; color:#445; margin-top:6px;
+    }
+    .agency-meta span{ background:#eef5ff; padding:4px 8px; border-radius:999px; }
+    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: 600; margin-top: 5px; }
+    .status-active   { background: #d4edda; color: #155724; }
+    .status-live     { background: #cce7ff; color: #0066cc; }
+    .status-onboarding { background: #fff3cd; color: #856404; }
+    .status-inactive { background: #f8d7da; color: #721c24; }
+
+    .work-in-progress { text-align: center; padding: 40px 20px; color: #6c757d; }
+
+    /* Funnel view */
+    .funnel-view { display: none; max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .funnel-container {
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 0;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .funnel-layer {
+      background: linear-gradient(135deg, var(--layer-color), var(--layer-color-dark));
+      overflow: hidden; position: relative; transition: all 0.3s ease; color: white;
+      min-height: 120px; height: auto; /* allow growth so text never spills */
+      display: flex; flex-direction: column; justify-content: center;
+      margin-bottom: -5px; padding: 20px 40px;
+    }
+    .funnel-layer:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); z-index: 10; }
+    .funnel-layer:nth-child(1) { width: 750px; clip-path: polygon(5% 0%, 95% 0%, 85% 100%, 15% 100%); }
+    .funnel-layer:nth-child(2) { width: 600px; clip-path: polygon(8% 0%, 92% 0%, 82% 100%, 18% 100%); }
+    .funnel-layer:nth-child(3) { width: 450px; clip-path: polygon(10% 0%, 90% 0%, 80% 100%, 20% 100%); }
+    .funnel-layer:nth-child(4) { width: 300px; clip-path: polygon(12% 0%, 88% 0%, 78% 100%, 22% 100%); }
+    .funnel-layer:nth-child(5) { width: 200px; clip-path: polygon(15% 0%, 85% 0%, 75% 100%, 25% 100%); }
+
+    .funnel-header {
+      text-align: center; font-weight: bold; font-size: 1.2em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin-bottom: 12px; z-index: 2; position: relative;
+    }
+    .funnel-content { z-index: 2; position: relative; width:100%; }
+    .funnel-items {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width:100%;
+    }
+    .funnel-item {
+      background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
+      padding: 6px 12px; border-radius: 15px; font-size: 0.8em; font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      transition: all 0.3s ease; cursor: pointer;
+      /* fix text overflow */
+      white-space: normal; word-break: break-word; overflow-wrap: anywhere; max-width: 100%;
+    }
+    .funnel-item:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
+    .layer-inactive  { --layer-color: #95a5a6; --layer-color-dark: #7f8c8d; }
+    .layer-onboarding{ --layer-color: #e74c3c; --layer-color-dark: #c0392b; }
+    .layer-live      { --layer-color: #f39c12; --layer-color-dark: #e67e22; }
+    .layer-active    { --layer-color: #3498db; --layer-color-dark: #2980b9; }
+    .layer-revenue   { --layer-color: #27ae60; --layer-color-dark: #1e8449; }
+    .funnel-stats {
+      position: absolute; right: -150px; top: 50%; transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #2c3e50; font-size: 0.9em; min-width: 120px;
+    }
+    .pg-detail-view { display: none; max-width: 1000px; margin: 0 auto; padding: 20px; }
+    .pg-detail-card {
+      background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .pg-header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #3498db; }
+    .pg-name { font-size: 2.5em; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+    .pg-location { color: #6c757d; font-size: 1.2em; }
+    .pg-metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; margin-bottom: 30px;
+    }
+    .pg-metric { text-align: center; padding: 25px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; border-radius: 15px; }
+    .pg-metric-value { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
+    .pg-metric-label { font-size: 0.9em; opacity: 0.9; }
+    .back-button {
+      background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none;
+      padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 1em; font-weight: 600;
+      transition: all 0.3s; margin-bottom: 20px;
+    }
+    .back-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+    .mi-in { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .tn-ky-west-oh { background: linear-gradient(135deg, #f39c12, #e67e22); }
+    .south-fl { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .ga-north-fl { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    .wv-east-oh-pa-ny { background: linear-gradient(135deg, #1abc9c, #16a085); }
+
+    @media (max-width: 768px) {
+      .filters { flex-direction: column; align-items: stretch; }
+      .divisions-grid { grid-template-columns: 1fr; }
+      .funnel-layer { width: 90% !important; clip-path: polygon(5% 0%, 95% 0%, 85% 100%, 15% 100%) !important; }
+      .funnel-stats { position: static !important; transform: none !important; margin-top: 10px; margin-bottom: 10px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="dashboard">
-        <div class="filters">
-            <div class="filter-group">
-                <label>Division:</label>
-                <select class="filter-select" id="regionFilter">
-                    <option value="all">All</option>
-                    <option value="mi-in">MI-IN</option>
-                    <option value="tn-ky-west-oh">TN-KY-West OH</option>
-                    <option value="ga-north-fl">GA-North FL</option>
-                    <option value="south-fl">South FL</option>
-                    <option value="wv-east-oh-pa-ny">WV-East OH-Parts of PA-Upstate NY</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Status:</label>
-                <select class="filter-select" id="statusFilter">
-                    <option value="all">All Statuses</option>
-                    <option value="onboarding">Onboarding</option>
-                    <option value="live">Live</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>View:</label>
-                <select class="filter-select" id="viewFilter">
-                    <option value="in-depth">In Depth View</option>
-                    <option value="funnel">Funnel</option>
-                </select>
-            </div>
+  <div class="dashboard">
+    <div class="main-content">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value">280+</div>
+          <div class="metric-label">Potential Physician Groups</div>
+          <div class="metric-change">Across All Divisions</div>
         </div>
-        
-        <div class="main-content">
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value" style="color: #e74c3c;">280+</div>
-                    <div class="metric-label">Potential Physician Groups</div>
-                    <div class="metric-change positive">Across All Divisions</div>
-                </div>
-            </div>
-            
-            <div class="divisions-grid" id="divisionsGrid">
-                <!-- MI-IN Division -->
-                <div class="region-card" data-region="mi-in" data-status="mixed">
-                    <div class="region-header mi-in">
-                        <span>MI-IN</span>
-                    </div>
-                    <div class="region-content">
-                        <div class="msa-section">
-                            <div class="msa-title">Indianapolis MSA</div>
-                            <div class="agency-item" data-status="active">
-                                <div class="agency-name">Grace at Home</div>
-                                <div class="status-badge status-active">Active</div>
-                            </div>
-                            <div class="agency-item" data-status="inactive">
-                                <div class="agency-name">Access Health Pro</div>
-                                <div class="status-badge status-inactive">Inactive</div>
-                            </div>
-                            <div class="agency-item" data-status="inactive">
-                                <div class="agency-name">Inhouse Primary Care</div>
-                                <div class="status-badge status-inactive">Inactive</div>
-                            </div>
-                            <div class="agency-item" data-status="live">
-                                <div class="agency-name">Indiana Home Based Primary Care</div>
-                                <div class="status-badge status-live">Live</div>
-                            </div>
-                        </div>
-                        
-                        <div class="msa-section">
-                            <div class="msa-title">Detroit MSA</div>
-                            <div class="agency-item" data-status="inactive">
-                                <div class="agency-name">Avalon Physician Services</div>
-                                <div class="status-badge status-inactive">Inactive</div>
-                            </div>
-                        </div>
-                        
-                        <div class="msa-section">
-                            <div class="msa-title">Midland</div>
-                            <div class="agency-item" data-status="live">
-                                <div class="agency-name">Dr. Perrin, Davey M.</div>
-                                <div class="status-badge status-live">Live</div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 10px;">
-                            <strong>45 PGs</strong> that might've been active being analysed
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- TN-KY-West OH Division -->
-                <div class="region-card" data-region="tn-ky-west-oh" data-status="mixed">
-                    <div class="region-header tn-ky-west-oh">
-                        <span>TN-KY-West OH</span>
-                    </div>
-                    <div class="region-content">
-                        <div class="msa-section">
-                            <div class="msa-title">Clarksville MSA</div>
-                            <div class="agency-item" data-status="active">
-                                <div class="agency-name">Covenant Care Group</div>
-                                <div class="status-badge status-active">Active</div>
-                            </div>
-                        </div>
-                        
-                        <div class="msa-section">
-                            <div class="msa-title">Nashville MSA</div>
-                            <div class="agency-item" data-status="active">
-                                <div class="agency-name">Iris</div>
-                                <div class="status-badge status-active">Revenue Generating</div>
-                            </div>
-                            <div class="agency-item" data-status="live">
-                                <div class="agency-name">Tennessee Home Based Primary Care</div>
-                                <div class="status-badge status-live">Live</div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 10px;">
-                            <strong>Around 20 PGs</strong> that could be active are being analysed
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- GA-North FL Division -->
-                <div class="region-card" data-region="ga-north-fl" data-status="wip">
-                    <div class="region-header ga-north-fl">
-                        <span>GA-North FL</span>
-                    </div>
-                    <div class="region-content">
-                        <div class="work-in-progress">
-                            <div style="font-size: 4em; margin-bottom: 15px;">🚧</div>
-                            <h3 style="margin-bottom: 10px;">Work in Progress</h3>
-                            <p><strong>55-60 PGs</strong> that might have been active at some point</p>
-                            <p style="margin-top: 10px; color: #28a745;">Good potential for future expansion</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- South FL Division -->
-                <div class="region-card" data-region="south-fl" data-status="mixed">
-                    <div class="region-header south-fl">
-                        <span>South FL</span>
-                    </div>
-                    <div class="region-content">
-                        <div class="msa-section">
-                            <div class="msa-title">Port St. Lucie MSA</div>
-                            <div class="agency-item" data-status="active">
-                                <div class="agency-name">MD Primary Care</div>
-                                <div class="status-badge status-active">Active</div>
-                            </div>
-                            <div class="agency-item" data-status="live">
-                                <div class="agency-name">Doctors Housecalls of FL</div>
-                                <div class="status-badge status-live">Live</div>
-                            </div>
-                        </div>
-                        
-                        <div class="msa-section">
-                            <div class="msa-title">Miami MSA</div>
-                            <div class="agency-item" data-status="live">
-                                <div class="agency-name">Medbetter Health</div>
-                                <div class="status-badge status-live">Live</div>
-                            </div>
-                        </div>
-                        
-                        <div class="msa-section">
-                            <div class="msa-title">Orlando MSA</div>
-                            <div class="agency-item" data-status="live">
-                                <div class="agency-name">Home Physicians Group</div>
-                                <div class="status-badge status-live">Live</div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 10px;">
-                            <strong>140 PGs</strong> being looked into that could be active
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- WV-East OH-Parts of PA-Upstate NY Division -->
-                <div class="region-card" data-region="wv-east-oh-pa-ny" data-status="mixed">
-                    <div class="region-header wv-east-oh-pa-ny">
-                        <span>WV-East OH-Parts of PA-Upstate NY</span>
-                    </div>
-                    <div class="region-content">
-                        <div class="agency-item" data-status="live">
-                            <div class="agency-name">Abode Care Partners</div>
-                            <div class="status-badge status-live">Live</div>
-                        </div>
-                        
-                        <div class="msa-section">
-                            <div class="msa-title">Cleveland MSA</div>
-                            <div class="agency-item" data-status="onboarding">
-                                <div class="agency-name">Neighborhood Family Practice</div>
-                                <div class="status-badge status-onboarding">Onboarding</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Funnel View -->
-            <div class="funnel-view" id="funnelView">
-                <div class="funnel-container">
-                    <div class="funnel-layer layer-inactive">
-                        <div class="funnel-header">Inactive</div>
-                        <div class="funnel-content">
-                            <div class="funnel-items">
-                                <div class="funnel-item">Inhouse Primary Care</div>
-                                <div class="funnel-item">Access Health Pro</div>
-                                <div class="funnel-item">Avalon Physician Services</div>
-                            </div>
-                        </div>
-                        <div class="funnel-stats">
-                            <div style="font-weight: bold;">3 Companies</div>
-                            <div style="font-size: 0.8em; color: #666;">Not Active</div>
-                        </div>
-                    </div>
-                    
-                    <div class="funnel-layer layer-onboarding">
-                        <div class="funnel-header">Onboarding</div>
-                        <div class="funnel-content">
-                            <div class="funnel-items">
-                                <div class="funnel-item">Neighborhood Family Practice</div>
-                            </div>
-                        </div>
-                        <div class="funnel-stats">
-                            <div style="font-weight: bold;">1 Company</div>
-                            <div style="font-size: 0.8em; color: #666;">In Process</div>
-                        </div>
-                    </div>
-                    
-                    <div class="funnel-layer layer-live">
-                        <div class="funnel-header">Live</div>
-                        <div class="funnel-content">
-                            <div class="funnel-items">
-                                <div class="funnel-item">Abode Care Partners</div>
-                                <div class="funnel-item">Home Physicians Group</div>
-                                <div class="funnel-item">Medbetter Health</div>
-                                <div class="funnel-item">Doctors Housecalls of FL</div>
-                                <div class="funnel-item">Tennessee Home Based Primary Care</div>
-                                <div class="funnel-item">Dr. Perrin, Davey M.</div>
-                                <div class="funnel-item">Indiana Home Based Primary Care</div>
-                            </div>
-                        </div>
-                        <div class="funnel-stats">
-                            <div style="font-weight: bold;">7 Companies</div>
-                            <div style="font-size: 0.8em; color: #666;">Platform Live</div>
-                        </div>
-                    </div>
-                    
-                    <div class="funnel-layer layer-active">
-                        <div class="funnel-header">Active</div>
-                        <div class="funnel-content">
-                            <div class="funnel-items">
-                                <div class="funnel-item">MD Primary Care</div>
-                                <div class="funnel-item">Covenant Care Group</div>
-                                <div class="funnel-item">Grace at Home</div>
-                            </div>
-                        </div>
-                        <div class="funnel-stats">
-                            <div style="font-weight: bold;">3 Companies</div>
-                            <div style="font-size: 0.8em; color: #666;">Ready to Bill</div>
-                        </div>
-                    </div>
-                    
-                    <div class="funnel-layer layer-revenue">
-                        <div class="funnel-header">Revenue Generating</div>
-                        <div class="funnel-content">
-                            <div class="funnel-items">
-                                <div class="funnel-item">Iris</div>
-                            </div>
-                        </div>
-                        <div class="funnel-stats">
-                            <div style="font-weight: bold;">1 Company</div>
-                            <div style="font-size: 0.8em; color: #666;">100% Revenue</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+      </div>
 
-    <script>
-        const regionFilter = document.getElementById('regionFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const viewFilter = document.getElementById('viewFilter');
-        const divisionsGrid = document.getElementById('divisionsGrid');
-        const funnelView = document.getElementById('funnelView');
-        
-        function filterDivisions() {
-            const selectedRegion = regionFilter.value;
-            const selectedStatus = statusFilter.value;
-            const selectedView = viewFilter.value;
-            const regionCards = divisionsGrid.querySelectorAll('.region-card');
-            
-            // Toggle view
-            if (selectedView === 'funnel') {
-                divisionsGrid.style.display = 'none';
-                funnelView.style.display = 'block';
-                filterFunnelView();
-                return;
+      <div class="filters">
+        <div class="filter-group">
+          <label>Division:</label>
+          <select class="filter-select" id="regionFilter">
+            <option value="all">All</option>
+            <option value="mi-in">MI-IN</option>
+            <option value="tn-ky-west-oh">TN-KY-West OH</option>
+            <option value="ga-north-fl">GA-North FL</option>
+            <option value="south-fl">South FL</option>
+            <option value="wv-east-oh-pa-ny">WV-East OH-Parts of PA-Upstate NY</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status:</label>
+          <select class="filter-select" id="statusFilter">
+            <option value="all">All Statuses</option>
+            <option value="onboarding">Onboarding</option>
+            <option value="live">Live</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>View:</label>
+          <select class="filter-select" id="viewFilter">
+            <option value="in-depth">In Depth View</option>
+            <option value="funnel">Funnel</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dynamic Totals (auto-updates with filters) -->
+      <div class="revenue-metrics" id="totalsBar">
+        <div class="revenue-metric">
+          <div class="revenue-value" id="totalPatients">0</div>
+          <div class="revenue-label">Total Potential Patients</div>
+        </div>
+        <div class="revenue-metric">
+          <div class="revenue-value" id="totalCodes">0</div>
+          <div class="revenue-label">Total Potential Billing Codes/Month</div>
+        </div>
+        <div class="revenue-metric">
+          <div class="revenue-value" id="totalRevenue">$0</div>
+          <div class="revenue-label">Total Potential Revenue/Month</div>
+        </div>
+      </div>
+
+      <!-- In-Depth View -->
+      <div class="divisions-grid" id="divisionsGrid">
+        <!-- MI-IN -->
+        <div class="region-card" data-region="mi-in">
+          <div class="region-header mi-in"><span>MI-IN</span></div>
+          <div class="region-content">
+            <div class="msa-section">
+              <div class="msa-title">Indianapolis MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="active" data-pg="grace-at-home">
+                <div class="agency-name">Grace at Home</div>
+                <div class="status-badge status-active">Active</div>
+              </div>
+              <div class="agency-item" tabindex="0" role="button" data-status="inactive" data-pg="access-health-pro">
+                <div class="agency-name">Access Health Pro</div>
+                <div class="status-badge status-inactive">Inactive</div>
+              </div>
+              <div class="agency-item" tabindex="0" role="button" data-status="inactive" data-pg="inhouse-primary-care">
+                <div class="agency-name">Inhouse Primary Care</div>
+                <div class="status-badge status-inactive">Inactive</div>
+              </div>
+              <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="indiana-home-based">
+                <div class="agency-name">Indiana Home Based Primary Care</div>
+                <div class="status-badge status-live">Live</div>
+              </div>
+            </div>
+
+            <div class="msa-section">
+              <div class="msa-title">Detroit MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="inactive" data-pg="avalon-physician">
+                <div class="agency-name">Avalon Physician Services</div>
+                <div class="status-badge status-inactive">Inactive</div>
+              </div>
+            </div>
+
+            <div class="msa-section">
+              <div class="msa-title">Midland</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="dr-perrin">
+                <div class="agency-name">Dr. Perrin, Davey M.</div>
+                <div class="status-badge status-live">Live</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 10px;">
+              <strong>45 PGs</strong> that might've been active being analysed
+            </div>
+          </div>
+        </div>
+
+        <!-- TN-KY-West OH -->
+        <div class="region-card" data-region="tn-ky-west-oh">
+          <div class="region-header tn-ky-west-oh"><span>TN-KY-West OH</span></div>
+          <div class="region-content">
+            <div class="msa-section">
+              <div class="msa-title">Clarksville MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="active" data-pg="covenant-care">
+                <div class="agency-name">Covenant Care Group</div>
+                <div class="status-badge status-active">Active</div>
+              </div>
+            </div>
+
+            <div class="msa-section">
+              <div class="msa-title">Nashville MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="active" data-pg="iris">
+                <div class="agency-name">Iris</div>
+                <div class="status-badge status-active">Revenue Generating</div>
+              </div>
+              <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="tennessee-home">
+                <div class="agency-name">Tennessee Home Based Primary Care</div>
+                <div class="status-badge status-live">Live</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 10px;">
+              <strong>Around 20 PGs</strong> that could be active are being analysed
+            </div>
+          </div>
+        </div>
+
+        <!-- GA-North FL -->
+        <div class="region-card" data-region="ga-north-fl">
+          <div class="region-header ga-north-fl"><span>GA-North FL</span></div>
+          <div class="region-content">
+            <div class="work-in-progress">
+              <div style="font-size: 4em; margin-bottom: 15px;">🚧</div>
+              <h3 style="margin-bottom: 10px;">Work in Progress</h3>
+              <p><strong>55-60 PGs</strong> that might have been active at some point</p>
+              <p style="margin-top: 10px; color: #28a745;">Good potential for future expansion</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- South FL -->
+        <div class="region-card" data-region="south-fl">
+          <div class="region-header south-fl"><span>South FL</span></div>
+          <div class="region-content">
+            <div class="msa-section">
+              <div class="msa-title">Port St. Lucie MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="active" data-pg="md-primary-care">
+                <div class="agency-name">MD Primary Care</div>
+                <div class="status-badge status-active">Active</div>
+              </div>
+              <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="doctors-housecalls">
+                <div class="agency-name">Doctors Housecalls of FL</div>
+                <div class="status-badge status-live">Live</div>
+              </div>
+            </div>
+
+            <div class="msa-section">
+              <div class="msa-title">Miami MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="medbetter-health">
+                <div class="agency-name">Medbetter Health</div>
+                <div class="status-badge status-live">Live</div>
+              </div>
+            </div>
+
+            <div class="msa-section">
+              <div class="msa-title">Orlando MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="home-physicians">
+                <div class="agency-name">Home Physicians Group</div>
+                <div class="status-badge status-live">Live</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 10px;">
+              <strong>140 PGs</strong> being looked into that could be active
+            </div>
+          </div>
+        </div>
+
+        <!-- WV-East OH-Parts of PA-Upstate NY -->
+        <div class="region-card" data-region="wv-east-oh-pa-ny">
+          <div class="region-header wv-east-oh-pa-ny"><span>WV-East OH-Parts of PA-Upstate NY</span></div>
+          <div class="region-content">
+            <div class="agency-item" tabindex="0" role="button" data-status="live" data-pg="abode-care">
+              <div class="agency-name">Abode Care Partners</div>
+              <div class="status-badge status-live">Live</div>
+            </div>
+
+            <div class="msa-section">
+              <div class="msa-title">Cleveland MSA</div>
+              <div class="agency-item" tabindex="0" role="button" data-status="onboarding" data-pg="neighborhood-family">
+                <div class="agency-name">Neighborhood Family Practice</div>
+                <div class="status-badge status-onboarding">Onboarding</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /divisionsGrid -->
+
+      <!-- Funnel View -->
+      <div class="funnel-view" id="funnelView">
+        <div class="funnel-container">
+          <div class="funnel-layer layer-inactive">
+            <div class="funnel-header">Inactive</div>
+            <div class="funnel-content">
+              <div class="funnel-items">
+                <div class="funnel-item" tabindex="0" role="button" data-region="mi-in" data-pg="inhouse-primary-care">Inhouse Primary Care</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="mi-in" data-pg="access-health-pro">Access Health Pro</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="mi-in" data-pg="avalon-physician">Avalon Physician Services</div>
+              </div>
+            </div>
+            <div class="funnel-stats">
+              <div class="stat-count" style="font-weight: bold;">3 Companies</div>
+              <div style="font-size: 0.8em; color: #666;">Not Active</div>
+            </div>
+          </div>
+
+          <div class="funnel-layer layer-onboarding">
+            <div class="funnel-header">Onboarding</div>
+            <div class="funnel-content">
+              <div class="funnel-items">
+                <div class="funnel-item" tabindex="0" role="button" data-region="wv-east-oh-pa-ny" data-pg="neighborhood-family">Neighborhood Family Practice</div>
+              </div>
+            </div>
+            <div class="funnel-stats">
+              <div class="stat-count" style="font-weight: bold;">1 Company</div>
+              <div style="font-size: 0.8em; color: #666;">In Process</div>
+            </div>
+          </div>
+
+          <div class="funnel-layer layer-live">
+            <div class="funnel-header">Live</div>
+            <div class="funnel-content">
+              <div class="funnel-items">
+                <div class="funnel-item" tabindex="0" role="button" data-region="wv-east-oh-pa-ny" data-pg="abode-care">Abode Care Partners</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="south-fl" data-pg="home-physicians">Home Physicians Group</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="south-fl" data-pg="medbetter-health">Medbetter Health</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="south-fl" data-pg="doctors-housecalls">Doctors Housecalls of FL</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="tn-ky-west-oh" data-pg="tennessee-home">Tennessee Home Based Primary Care</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="mi-in" data-pg="dr-perrin">Dr. Perrin, Davey M.</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="mi-in" data-pg="indiana-home-based">Indiana Home Based Primary Care</div>
+              </div>
+            </div>
+            <div class="funnel-stats">
+              <div class="stat-count" style="font-weight: bold;">7 Companies</div>
+              <div style="font-size: 0.8em; color: #666;">Platform Live</div>
+            </div>
+          </div>
+
+          <div class="funnel-layer layer-active">
+            <div class="funnel-header">Active</div>
+            <div class="funnel-content">
+              <div class="funnel-items">
+                <div class="funnel-item" tabindex="0" role="button" data-region="south-fl" data-pg="md-primary-care">MD Primary Care</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="tn-ky-west-oh" data-pg="covenant-care">Covenant Care Group</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="mi-in" data-pg="grace-at-home">Grace at Home</div>
+                <div class="funnel-item" tabindex="0" role="button" data-region="tn-ky-west-oh" data-pg="iris">Iris</div>
+              </div>
+            </div>
+            <div class="funnel-stats">
+              <div class="stat-count" style="font-weight: bold;">4 Companies</div>
+              <div style="font-size: 0.8em; color: #666;">Currently Engaged</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /funnelView -->
+    </div>
+  </div>
+
+  <!-- Interactivity -->
+  <script>
+    // --- PG master data for revenue report ---
+    const PG_DATA = {
+      'grace-at-home':     { name:'Grace at Home',           region:'mi-in',          status:'active',   patients:600, codes:800,  revenue:78000 },
+      'covenant-care':     { name:'Covenant Care Group',     region:'tn-ky-west-oh',  status:'active',   patients:150, codes:200,  revenue:20000 },
+      'md-primary-care':   { name:'MD Primary Care',         region:'south-fl',       status:'active',   patients:70,  codes:100,  revenue:9500  },
+      'iris':              { name:'Iris',                    region:'tn-ky-west-oh',  status:'active',   patients:900, codes:1200, revenue:120000 },
+      // Others can be added later; if missing they simply won't contribute to totals.
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const regionFilter = document.getElementById('regionFilter');
+      const statusFilter = document.getElementById('statusFilter');
+      const viewFilter   = document.getElementById('viewFilter');
+
+      const divisionsGrid = document.getElementById('divisionsGrid');
+      const funnelView    = document.getElementById('funnelView');
+
+      const regionCards   = Array.from(divisionsGrid.querySelectorAll('.region-card'));
+      const funnelLayers  = Array.from(funnelView.querySelectorAll('.funnel-layer'));
+
+      const totalsEls = {
+        patients: document.getElementById('totalPatients'),
+        codes:    document.getElementById('totalCodes'),
+        revenue:  document.getElementById('totalRevenue')
+      };
+
+      // Attach micro-metrics chips to agency items (only for PGs we have data for)
+      addAgencyMicroMetrics();
+
+      // Click navigation for both agency items and funnel items
+      divisionsGrid.addEventListener('click', (e) => {
+        const item = e.target.closest('.agency-item');
+        if (item && item.dataset.pg) navigateToPg(item.dataset.pg);
+      });
+      divisionsGrid.addEventListener('keydown', (e) => {
+        const item = e.target.closest('.agency-item');
+        if (item && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault(); navigateToPg(item.dataset.pg);
+        }
+      });
+      funnelView.addEventListener('click', (e) => {
+        const item = e.target.closest('.funnel-item');
+        if (item && item.dataset.pg) navigateToPg(item.dataset.pg);
+      });
+      funnelView.addEventListener('keydown', (e) => {
+        const item = e.target.closest('.funnel-item');
+        if (item && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault(); navigateToPg(item.dataset.pg);
+        }
+      });
+
+      function navigateToPg(pgId) {
+        // Redirect to your PG detail page (single template suggested)
+        window.location.href = `pg.html?pg=${encodeURIComponent(pgId)}`;
+      }
+
+      function updateViewToggle() {
+        const view = viewFilter.value;
+        if (view === 'funnel') {
+          funnelView.style.display = 'block';
+          divisionsGrid.style.display = 'none';
+        } else {
+          funnelView.style.display = 'none';
+          divisionsGrid.style.display = '';
+        }
+        applyFilters();
+      }
+
+      function applyFilters() {
+        const region = regionFilter.value;   // 'all' or a data-region value
+        const status = statusFilter.value;   // 'all' | 'onboarding' | 'live' | 'active' | 'inactive'
+
+        // In-Depth view filtering (region + status)
+        if (divisionsGrid.style.display !== 'none') {
+          regionCards.forEach(card => {
+            const matchesRegion = (region === 'all') || (card.dataset.region === region);
+
+            if (!matchesRegion) {
+              card.style.display = 'none';
+              return;
             } else {
-                divisionsGrid.style.display = 'grid';
-                funnelView.style.display = 'none';
+              card.style.display = '';
             }
-            
-            regionCards.forEach(card => {
-                const cardRegion = card.getAttribute('data-region');
-                let showCard = true;
-                
-                if (selectedRegion !== 'all' && cardRegion !== selectedRegion) {
-                    showCard = false;
-                }
-                
-                // Handle status filtering for individual agencies
-                if (selectedStatus !== 'all') {
-                    const agencies = card.querySelectorAll('.agency-item');
-                    let hasMatchingAgency = false;
-                    
-                    agencies.forEach(agency => {
-                        const agencyStatus = agency.getAttribute('data-status');
-                        if (agencyStatus === selectedStatus) {
-                            hasMatchingAgency = true;
-                            agency.style.display = 'block';
-                        } else {
-                            agency.style.display = selectedStatus === 'all' ? 'block' : 'none';
-                        }
-                    });
-                    
-                    if (!hasMatchingAgency) {
-                        showCard = false;
-                    }
-                } else {
-                    // Show all agencies when no status filter
-                    const agencies = card.querySelectorAll('.agency-item');
-                    agencies.forEach(agency => {
-                        agency.style.display = 'block';
-                    });
-                }
-                
-                card.style.display = showCard ? 'block' : 'none';
+
+            // Filter agency items by status
+            const items = Array.from(card.querySelectorAll('.agency-item'));
+            let visibleCount = 0;
+            items.forEach(item => {
+              const matchesStatus = (status === 'all') || (item.dataset.status === status);
+              item.style.display = matchesStatus ? '' : 'none';
+              if (matchesStatus) visibleCount++;
             });
+
+            // Hide region card if it ends up with no visible agencies
+            if (items.length > 0 && visibleCount === 0) {
+              card.style.display = 'none';
+            }
+          });
         }
-        
-        function filterFunnelView() {
-            const selectedStatus = statusFilter.value;
-            const funnelLayers = funnelView.querySelectorAll('.funnel-layer');
-            
-            funnelLayers.forEach(layer => {
-                if (selectedStatus === 'all') {
-                    layer.style.display = 'block';
-                } else {
-                    const layerClasses = layer.className;
-                    let showLayer = false;
-                    
-                    if (selectedStatus === 'active' && layerClasses.includes('layer-active')) showLayer = true;
-                    if (selectedStatus === 'live' && layerClasses.includes('layer-live')) showLayer = true;
-                    if (selectedStatus === 'onboarding' && layerClasses.includes('layer-onboarding')) showLayer = true;
-                    if (selectedStatus === 'inactive' && layerClasses.includes('layer-inactive')) showLayer = true;
-                    
-                    layer.style.display = showLayer ? 'block' : 'none';
-                }
+
+        // Funnel view filtering (status + region impacts items; hide empty layers)
+        if (funnelView.style.display !== 'none') {
+          funnelLayers.forEach(layer => {
+            // First show layer so we can compute items; status filtering below may hide it
+            layer.style.display = '';
+
+            const items = Array.from(layer.querySelectorAll('.funnel-item'));
+            let visibleInLayer = 0;
+
+            items.forEach(it => {
+              const matchesStatus = status === 'all' || layer.classList.contains(`layer-${status}`);
+              const matchesRegion = region === 'all' || it.dataset.region === region;
+              const show = matchesStatus && matchesRegion;
+              it.style.display = show ? '' : 'none';
+              if (show) visibleInLayer++;
             });
+
+            // If no visible items in this layer, hide the entire layer
+            if (visibleInLayer === 0) {
+              layer.style.display = 'none';
+            }
+
+            // Update layer stat count to reflect current visibility
+            const stat = layer.querySelector('.stat-count');
+            if (stat) {
+              const label = visibleInLayer === 1 ? 'Company' : 'Companies';
+              stat.textContent = `${visibleInLayer} ${label}`;
+            }
+          });
         }
-        
-        regionFilter.addEventListener('change', filterDivisions);
-        statusFilter.addEventListener('change', filterDivisions);
-        viewFilter.addEventListener('change', filterDivisions);
-        
-        // Add hover effects to metric cards
-        document.querySelectorAll('.metric-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const value = this.querySelector('.metric-value');
-                value.style.transform = 'scale(1.1)';
-                setTimeout(() => {
-                    value.style.transform = 'scale(1)';
-                }, 200);
-            });
+
+        // After visibility updates, recompute totals
+        updateTotals();
+      }
+
+      function updateTotals() {
+        const view = viewFilter.value;
+        let ids = [];
+
+        if (view === 'in-depth') {
+          const visibleAgencyItems = Array.from(divisionsGrid.querySelectorAll('.agency-item'))
+            .filter(el => el.offsetParent !== null && getComputedStyle(el).display !== 'none');
+          ids = visibleAgencyItems.map(el => el.dataset.pg);
+        } else {
+          const visibleFunnelItems = Array.from(funnelView.querySelectorAll('.funnel-item'))
+            .filter(el => el.offsetParent !== null && getComputedStyle(el).display !== 'none');
+          ids = visibleFunnelItems.map(el => el.dataset.pg);
+        }
+
+        let patients = 0, codes = 0, revenue = 0;
+        ids.forEach(id => {
+          const d = PG_DATA[id];
+          if (d) {
+            patients += d.patients || 0;
+            codes    += d.codes || 0;
+            revenue  += d.revenue || 0;
+          }
         });
-        
-        // Animate progress bars on load
-        window.addEventListener('load', function() {
-            document.querySelectorAll('.progress-fill').forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 500);
-            });
+
+        totalsEls.patients.textContent = formatNumber(patients);
+        totalsEls.codes.textContent    = formatNumber(codes);
+        totalsEls.revenue.textContent  = formatCurrency(revenue);
+      }
+
+      function addAgencyMicroMetrics() {
+        const agencies = Array.from(document.querySelectorAll('.agency-item'));
+        agencies.forEach(a => {
+          const id = a.dataset.pg;
+          const d = PG_DATA[id];
+          if (!d) return;
+
+          // Avoid duplicate meta
+          if (a.querySelector('.agency-meta')) return;
+
+          const meta = document.createElement('div');
+          meta.className = 'agency-meta';
+          meta.innerHTML = `
+            <span>👥 ${formatNumber(d.patients)} pts</span>
+            <span>🧾 ${formatNumber(d.codes)} codes/mo</span>
+            <span>💵 ${formatCurrency(d.revenue)}/mo</span>
+          `;
+          a.appendChild(meta);
         });
-    </script>
+      }
+
+      function formatNumber(n) {
+        return (n || 0).toLocaleString('en-US');
+      }
+      function formatCurrency(n) {
+        return `$${(n || 0).toLocaleString('en-US')}`;
+      }
+
+      regionFilter.addEventListener('change', applyFilters);
+      statusFilter.addEventListener('change', applyFilters);
+      viewFilter.addEventListener('change', updateViewToggle);
+
+      // initial state
+      updateViewToggle(); // also calls applyFilters -> updateTotals
+    });
+  </script>
 </body>
 </html>
